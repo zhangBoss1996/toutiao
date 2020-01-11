@@ -6,7 +6,7 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     //  从本地拿到token
-    user: auth.getUSer()
+    user: auth.getUser()
   },
   mutations: {
     updateUser (state, payload) {
