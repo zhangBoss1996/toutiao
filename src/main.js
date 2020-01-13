@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
-import router from './router'
+import router from './permission'
 import store from './store'
 // 引入Vant 插件以及样式
 import Vant from 'vant'
