@@ -2,11 +2,11 @@
   <div class="scroll-wrapper">
     <van-pull-refresh v-model="downLoading" @refresh="onRefresh" :success-text="refreshSuccessText">
       <van-list v-model="upLoading" :finished="finished" @load="onLoad" finished-text="没有了">
-        <van-cell v-for="articles in articles" :key="articles">
+        <van-cell v-for="article in articles" :key="article.art_id.toString()">
           <div class="article_item">
-            <h3 class="van-ellipsis">PullRefresh下拉刷新PullRefresh下拉刷新下拉刷新下拉刷新</h3>
+            <h3 class="van-ellipsis">{{ article.title }}</h3>
             <!--  三途模式 -->
-            <div class="img_box">
+            <div class="img_box"  v-if="article.cover.type === 3">
               <van-image class="w33" fit="cover" src="https://img.yzcdn.cn/vant/cat.jpeg" />
               <van-image class="w33" fit="cover" src="https://img.yzcdn.cn/vant/cat.jpeg" />
               <van-image class="w33" fit="cover" src="https://img.yzcdn.cn/vant/cat.jpeg" />
@@ -14,13 +14,13 @@
 
             <!--  单图模式 -->
 
-            <div class="img_box">
+            <div class="img_box"  v-if="article.cover.type === 1">
               <van-image class="w100" fit="cover" src="https://img.yzcdn.cn/vant/cat.jpeg" />
             </div>
             <div class="info_box">
-              <span>你像一阵风</span>
-              <span>8评论</span>
-              <span>10分钟前</span>
+              <span>{{ article.aut_name }}</span>
+              <span>{{ article.comm_count }}评论</span>
+              <span>{{ article.pubdate | relTime}}</span>
               <span class="close">
                 <van-icon name="cross"></van-icon>
               </span>
@@ -33,6 +33,7 @@
 </template>
 
 <script>
+import { getArticles } from '@/api/article'
 export default {
   data () {
     return {
@@ -40,25 +41,43 @@ export default {
       finished: false, // 是否加载数据 当为true的时候加载完毕
       articles: [], // 定义一个数组自己定义数据渲染页面
       refreshSuccessText: '更新成功',
-      downLoading: false // 是否开启下拉刷新
+      downLoading: false, // 是否开启下拉刷新
+      timestamp: null // 定义一个时间戳
+    }
+  },
+  //   接受父组件传的值 使用props
+  props: {
+    channel_id: {
+      required: true,
+      type: Number,
+      default: null
     }
   },
   methods: {
-    //   上拉加载
-    onLoad () {
-      setTimeout(() => {
-        if (this.articles.length < 50) {
-          // 自己 模拟数据渲染页面 当页面的条数小于50条的时候渲染数据
-          let arr = Array.from(
-            Array(10),
-            (value, index) => this.articles.length + index + 1
-          )
-          this.articles.push(...arr)
-          this.upLoading = false
-        } else {
-          this.finished = true // 告诉组件内容已经渲染完成 关闭加载
-        }
-      }, 1000)
+    //   上拉加载 获取真实数据
+    async onLoad () {
+      let data = await getArticles({ channel_id: this.channel_id, timestamp: this.timestamp || Date.now() })
+      //   追加数据到队尾
+      this.articles.push(...data.results)
+      this.upLoading = false
+      if (data.pre_timestamp) {
+        this.timestamp = data.pre_timestamp
+      } else {
+        this.finished = true
+      }
+    //   setTimeout(() => {
+    //     if (this.articles.length < 50) {
+    //       // 自己 模拟数据渲染页面 当页面的条数小于50条的时候渲染数据
+    //       let arr = Array.from(
+    //         Array(10),
+    //         (value, index) => this.articles.length + index + 1
+    //       )
+    //       this.articles.push(...arr)
+    //       this.upLoading = false
+    //     } else {
+    //       this.finished = true // 告诉组件内容已经渲染完成 关闭加载
+    //     }
+    //   }, 1000)
     },
     // 下拉刷新
     onRefresh () {
