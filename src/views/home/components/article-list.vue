@@ -56,6 +56,7 @@ export default {
   methods: {
     //   上拉加载 获取真实数据
     async onLoad () {
+      await this.$sleep() // 等待 sleep  resovle
       let data = await getArticles({
         channel_id: this.channel_id,
         timestamp: this.timestamp || Date.now()
@@ -84,6 +85,7 @@ export default {
     },
     // 下拉刷新
     async onRefresh () {
+      await this.$sleep() // 等待 sleep  resovle
       const data = await getArticles({
         channel_id: this.channel_id,
         timestamp: Date.now()
