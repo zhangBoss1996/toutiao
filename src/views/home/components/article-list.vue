@@ -6,16 +6,16 @@
           <div class="article_item">
             <h3 class="van-ellipsis">{{ article.title }}</h3>
             <!--  三途模式 -->
-            <div class="img_box"  v-if="article.cover.type === 3">
-              <van-image class="w33" fit="cover" src="https://img.yzcdn.cn/vant/cat.jpeg" />
-              <van-image class="w33" fit="cover" src="https://img.yzcdn.cn/vant/cat.jpeg" />
-              <van-image class="w33" fit="cover" src="https://img.yzcdn.cn/vant/cat.jpeg" />
+            <div class="img_box" v-if="article.cover.type === 3">
+              <van-image class="w33" fit="cover" :src="article.cover.images[0]" />
+              <van-image class="w33" fit="cover" :src="article.cover.images[1]" />
+              <van-image class="w33" fit="cover" :src="article.cover.images[2]" />
             </div>
 
             <!--  单图模式 -->
 
-            <div class="img_box"  v-if="article.cover.type === 1">
-              <van-image class="w100" fit="cover" src="https://img.yzcdn.cn/vant/cat.jpeg" />
+            <div class="img_box" v-if="article.cover.type === 1">
+              <van-image class="w100" fit="cover" :src="article.cover.images[0]" />
             </div>
             <div class="info_box">
               <span>{{ article.aut_name }}</span>
@@ -56,7 +56,10 @@ export default {
   methods: {
     //   上拉加载 获取真实数据
     async onLoad () {
-      let data = await getArticles({ channel_id: this.channel_id, timestamp: this.timestamp || Date.now() })
+      let data = await getArticles({
+        channel_id: this.channel_id,
+        timestamp: this.timestamp || Date.now()
+      })
       //   追加数据到队尾
       this.articles.push(...data.results)
       this.upLoading = false
@@ -65,28 +68,43 @@ export default {
       } else {
         this.finished = true
       }
-    //   setTimeout(() => {
-    //     if (this.articles.length < 50) {
-    //       // 自己 模拟数据渲染页面 当页面的条数小于50条的时候渲染数据
-    //       let arr = Array.from(
-    //         Array(10),
-    //         (value, index) => this.articles.length + index + 1
-    //       )
-    //       this.articles.push(...arr)
-    //       this.upLoading = false
-    //     } else {
-    //       this.finished = true // 告诉组件内容已经渲染完成 关闭加载
-    //     }
-    //   }, 1000)
+      //   setTimeout(() => {
+      //     if (this.articles.length < 50) {
+      //       // 自己 模拟数据渲染页面 当页面的条数小于50条的时候渲染数据
+      //       let arr = Array.from(
+      //         Array(10),
+      //         (value, index) => this.articles.length + index + 1
+      //       )
+      //       this.articles.push(...arr)
+      //       this.upLoading = false
+      //     } else {
+      //       this.finished = true // 告诉组件内容已经渲染完成 关闭加载
+      //     }
+      //   }, 1000)
     },
     // 下拉刷新
-    onRefresh () {
-      setTimeout(() => {
-        let arr = Array.from(Array(10), (value, index) => '追加' + (index + 1))
-        this.articles.unshift(...arr) // 在原有数据之前添加数据
-        this.downLoading = false // 关闭下拉刷新
-        this.refreshSuccessText = `更新了${arr.length}条数据`
-      }, 1000)
+    async onRefresh () {
+      const data = await getArticles({
+        channel_id: this.channel_id,
+        timestamp: Date.now()
+      })
+      this.downLoading = false // 关闭下拉刷新
+      if (data.results.length) {
+        this.articles = data.results // 将历史的数据全部覆盖
+        this.finished = false
+        this.timestamp = data.pre_timestamp
+        this.refreshSuccessText = `更新了${data.results.length}条数据`
+      } else {
+        //   如果没有数据更新，什么都不需要变化
+        this.refreshSuccessText = '已是最新的数据'
+      }
+
+      //   setTimeout(() => {
+      //     let arr = Array.from(Array(10), (value, index) => '追加' + (index + 1))
+      //     this.articles.unshift(...arr) // 在原有数据之前添加数据
+      //     this.downLoading = false // 关闭下拉刷新
+      //     this.refreshSuccessText = `更新了${arr.length}条数据`
+      //   }, 1000)
     }
   }
 }
