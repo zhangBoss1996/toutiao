@@ -20,12 +20,13 @@ instance.interceptors.request.use(function (config) {
     //  将本地的token保存在请求头中
     config.headers['Authorization'] = `Bearer ${store.state.user.token}`
   }
+  return config
 }, function (error) {
   return Promise.reject(error)
 })
 
 // 响应拦截器
-instance.interceptors.response.user(function (response) {
+instance.interceptors.response.use(function (response) {
   try {
     return response.data.data
   } catch (error) {
